@@ -21,8 +21,8 @@
 
 namespace Cybage\Multifilter\Model;
 
-class Session extends \Magento\Framework\Session\SessionManager {
-
+class Session extends \Magento\Framework\Session\SessionManager 
+{
     /**
      * Retrieve session name
      *
@@ -42,5 +42,4 @@ class Session extends \Magento\Framework\Session\SessionManager {
         session_name($name);
         return $this;
     }
-
 }

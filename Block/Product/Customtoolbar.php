@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Cybage Multifilter Layered Navigation Plugin
  *
@@ -24,7 +23,8 @@ namespace Cybage\Multifilter\Block\Product;
 use Magento\Catalog\Helper\Product\ProductList;
 use Magento\Catalog\Model\Product\ProductList\Toolbar as ToolbarModel;
 
-class Customtoolbar extends \Magento\Catalog\Block\Product\ProductList\Toolbar {
+class Customtoolbar extends \Magento\Catalog\Block\Product\ProductList\Toolbar 
+{
 
     /**
      * Products collection
@@ -117,11 +117,6 @@ class Customtoolbar extends \Magento\Catalog\Block\Product\ProductList\Toolbar {
     protected $_productListHelper;
 
     /**
-     * @var \Magento\Framework\Url\EncoderInterface
-     */
-    protected $urlEncoder;
-
-    /**
      * @var \Magento\Framework\Data\Helper\PostHelper
      */
     protected $_postDataHelper;
@@ -150,11 +145,30 @@ class Customtoolbar extends \Magento\Catalog\Block\Product\ProductList\Toolbar {
      * @param array $data
      */
     public function __construct(
-    \Magento\Framework\View\Element\Template\Context $context, \Magento\Catalog\Model\Session $catalogSession, \Magento\Catalog\Model\Config $catalogConfig, ToolbarModel $toolbarModel, \Magento\Framework\Url\EncoderInterface $urlEncoder, ProductList $productListHelper, \Magento\Framework\Data\Helper\PostHelper $postDataHelper,\Magento\Framework\Session\Generic $multifilterSession,\Magento\Framework\Registry  $coreRegistry,array $data = []
+		\Magento\Framework\View\Element\Template\Context $context, 
+		\Magento\Catalog\Model\Session $catalogSession, 
+		\Magento\Catalog\Model\Config $catalogConfig, 
+		ToolbarModel $toolbarModel, 
+		\Magento\Framework\Url\EncoderInterface $urlEncoder, 
+		ProductList $productListHelper, 
+		\Magento\Framework\Data\Helper\PostHelper $postDataHelper,
+		\Magento\Framework\Session\Generic $multifilterSession,
+		\Magento\Framework\Registry  $coreRegistry,
+		array $data = []
     ) {
         $this->multifilterSession = $multifilterSession;
         $this->coreRegistry = $coreRegistry;
-        parent::__construct($context, $catalogSession, $catalogConfig, $toolbarModel, $urlEncoder, $productListHelper, $postDataHelper, $data);
+        
+		parent::__construct(
+			$context, 
+			$catalogSession, 
+			$catalogConfig, 
+			$toolbarModel, 
+			$urlEncoder, 
+			$productListHelper, 
+			$postDataHelper, 
+			$data
+		);
     }
 
     /**
@@ -166,13 +180,19 @@ class Customtoolbar extends \Magento\Catalog\Block\Product\ProductList\Toolbar {
         $categories = $this->coreRegistry ->registry('catagories');
         $attributes = $this->coreRegistry ->registry('attributes');
         $type = $this->multifilterSession->getType();
-        if ($type == 'custom') {
+        
+		if ($type == 'custom') {
             $pagerBlock = $this->getChildBlock('product_list_toolbar_pager');
-            $implodeArr = $objectManager->get('Cybage\Multifilter\Controller\Category\View')->getProducts($categories, $attributes);
-            $activeLimit=$this->multifilterSession->setActiveLimit();
+            $implodeArr = $objectManager->get('Cybage\Multifilter\Controller\Category\View')
+										->getProducts($categories, $attributes);
+            
+			$activeLimit= $this->multifilterSession->setActiveLimit();
             $activeSort = $this->multifilterSession->getActiveSort();
-            $collection = $objectManager->get('Cybage\Multifilter\Controller\Category\View')->getParentCollection($implodeArr, $activeLimit, $activeSort);
-            if ($pagerBlock instanceof \Magento\Framework\DataObject) {
+            
+			$collection = $objectManager->get('Cybage\Multifilter\Controller\Category\View')
+										->getParentCollection($implodeArr, $activeLimit, $activeSort);
+            
+			if ($pagerBlock instanceof \Magento\Framework\DataObject) {
                 /* @var $pagerBlock \Magento\Theme\Block\Html\Pager */
                 $pagerBlock->setCollection(
                         $collection
@@ -184,7 +204,4 @@ class Customtoolbar extends \Magento\Catalog\Block\Product\ProductList\Toolbar {
             return parent::getPagerHtml();
         }
     }
-
 }
-
-?>

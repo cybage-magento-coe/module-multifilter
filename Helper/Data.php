@@ -21,20 +21,17 @@
 
 namespace Cybage\Multifilter\Helper;
 
-class Data extends \Magento\Framework\App\Helper\AbstractHelper {
-
+class Data extends \Magento\Framework\App\Helper\AbstractHelper 
+{
     /**
      * Functionality to get configuration values of plugin
      *
-     * @param $config_path: System xml config path
+     * @param $configPath: System xml config path
      * @return value of requested configuration
      */
-    public function getConfig($config_path) {
+    public function getConfig($configPath) {
         return $this->scopeConfig->getValue(
-                        $config_path, \Magento\Store\Model\ScopeInterface::SCOPE_STORE
+			$configPath, \Magento\Store\Model\ScopeInterface::SCOPE_STORE
         );
     }
-
 }
-
-?>

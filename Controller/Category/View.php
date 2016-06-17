@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Cybage Multifilter Layered Navigation Plugin
  *
@@ -18,36 +17,41 @@
  * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
  * @author     Cybage Software Pvt. Ltd. <Support_ecom@cybage.com>
  */
-
 namespace Cybage\Multifilter\Controller\Category;
 
-class View extends \Magento\Framework\App\Action\Action {
+class View extends \Magento\Framework\App\Action\Action 
+{
 
     /**
      * @var \Magento\Framework\Session\Generic
      */
-    protected $multifilterSession;
+    protected $_multifilterSession;
 
     /**
      * Core registry
      *
      * @var \Magento\Framework\Registry
      */
-    protected $coreRegistry = null;
+    protected $_coreRegistry = null;
 
     /**
      * @var \Magento\Catalog\Model\Product
      */
-    protected $productModel;
+    protected $_productModel;
 
     /**
      * @param Context $context
      * @param \Magento\Framework\Session\Generic $session
      */
-    public function __construct(\Magento\Framework\App\Action\Context $context, \Magento\Framework\Session\Generic $multifilterSession, \Magento\Framework\Registry $coreRegistry, \Magento\Catalog\Model\Product $productModel) {
-        $this->multifilterSession = $multifilterSession;
-        $this->coreRegistry = $coreRegistry;
-        $this->productModel = $productModel;
+    public function __construct(
+		\Magento\Framework\App\Action\Context $context, 
+		\Magento\Framework\Session\Generic $multifilterSession, 
+		\Magento\Framework\Registry $coreRegistry, 
+		\Magento\Catalog\Model\Product $productModel
+	) {
+        $this->_multifilterSession = $multifilterSession;
+        $this->_coreRegistry = $coreRegistry;
+        $this->_productModel = $productModel;
         parent::__construct($context);
     }
 
@@ -69,17 +73,20 @@ class View extends \Magento\Framework\App\Action\Action {
         $moduleActivation = $this->_objectManager->get('Cybage\Multifilter\Helper\Data')->getConfig('multifilter/general/active');
         if ($moduleActivation == '1') {
             $returnValue = $proceed();
-            $filters = $this->getRequest()->getParam('checkedFilter');
-            $category = $this->coreRegistry->registry('current_category');
-            $this->multifilterSession->setCurrentCategory($category->getId());
-            $this->multifilterSession->setType('coreblock');
-            $this->_view->loadLayout();
+            
+			$filters = $this->getRequest()->getParam('checkedFilter');
+            $category = $this->_coreRegistry->registry('current_category');
+            $this->_multifilterSession->setCurrentCategory($category->getId());
+            $this->_multifilterSession->setType('coreblock');
+            
+			$this->_view->loadLayout();
             $layout = $this->_view->getLayout();
             $block = $layout->getBlock('category.products.list');
             $this->_view->loadLayoutUpdates();
-            return $returnValue;
+            
+			return $returnValue;
         } else {
-            $this->multifilterSession->setType('coreblock');
+            $this->_multifilterSession->setType('coreblock');
             $returnValue = $proceed();
             return $returnValue;
         }
@@ -94,13 +101,17 @@ class View extends \Magento\Framework\App\Action\Action {
      */
     public function getProducts($categories, $attributes) {
         $registerCat = '';
-        $currentCat = $this->multifilterSession->getCurrentCategory();
+        $currentCat = $this->_multifilterSession->getCurrentCategory();
         if (!empty($categories)) {
             $registerCat = array_unique($categories);
         }
-        $collection = $this->productModel->getCollection();
+        $collection = $this->_productModel->getCollection();
         $collection->joinField(
-                'category_id', 'catalog_category_product', 'category_id', 'product_id = entity_id', null
+                'category_id', 
+				'catalog_category_product', 
+				'category_id', 
+				'product_id = entity_id', 
+				null
         );
         if (!empty($registerCat)) {
             $collection->addFieldToFilter(
@@ -151,7 +162,8 @@ class View extends \Magento\Framework\App\Action\Action {
         $parentsId = '';
         $productId = array();
         foreach ($collection as $data) {
-            $parentsId = $this->_objectManager->get('\Magento\ConfigurableProduct\Model\Product\Type\Configurable')->getParentIdsByChild($data->getId());
+            $parentsId = $this->_objectManager->get('\Magento\ConfigurableProduct\Model\Product\Type\Configurable')
+											->getParentIdsByChild($data->getId());
             if (!empty($parentsId)) {
                 $finalArr[] = $parentsId[0];
             } else {
@@ -174,12 +186,13 @@ class View extends \Magento\Framework\App\Action\Action {
      */
     public function getParentCollection($implodedArr, $activeLimit, $activeSortOpt) {
         if (!empty($implodedArr)) {
-            $productCollection = $this->productModel->getCollection();
+            $productCollection = $this->_productModel->getCollection();
             $productCollection->addFieldToFilter('entity_id', array($implodedArr));
             $productCollection->addAttributeToSelect('*');
-            $this->multifilterSession->settotalCount(count($productCollection->getData()));
-            $page = $this->multifilterSession->getCurrentPage();
-            if ($page > 1 && !empty($page)) {
+            $this->_multifilterSession->settotalCount(count($productCollection->getData()));
+            $page = $this->_multifilterSession->getCurrentPage();
+            
+			if ($page > 1 && !empty($page)) {
                 $lastLimit = $activeLimit * $page + 1;
                 $firstLimit = $activeLimit + 1;
                 $productCollection->setPage($firstLimit, $lastLimit);
@@ -211,7 +224,8 @@ class View extends \Magento\Framework\App\Action\Action {
      * @return attribute frontend type
      */
     public function checkAttribute($attributeCode) {
-        $attributeColl = $this->_objectManager->get('\Magento\Catalog\Model\Product\Attribute\Repository')->get($attributeCode);
+        $attributeColl = $this->_objectManager->get('\Magento\Catalog\Model\Product\Attribute\Repository')
+											->get($attributeCode);
         $frontendType = $attributeColl->getFrontendInput();
         return $frontendType;
     }
@@ -224,7 +238,8 @@ class View extends \Magento\Framework\App\Action\Action {
      */
     public function getChildCat($parentCat) {
         if (!empty($parentCat)) {
-            $childColl = $this->_objectManager->get('\Magento\Catalog\Model\Category')->getCategories($parentCat);
+            $childColl = $this->_objectManager->get('\Magento\Catalog\Model\Category')
+							->getCategories($parentCat);
             $childCat = [];
             foreach ($childColl as $category) {
                 $childCat[] = $category->getId();

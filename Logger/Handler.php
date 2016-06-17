@@ -9,11 +9,11 @@ class Handler extends \Magento\Framework\Logger\Handler\Base
      * Logging level
      * @var int
      */
-    protected $loggerType = Logger::INFO;
+    public $loggerType = Logger::INFO;
 
     /**
      * File name
      * @var string
      */
-    protected $fileName = '/var/log/testlogging.log';
+    public $fileName = '/var/log/multifilter.log';
 }

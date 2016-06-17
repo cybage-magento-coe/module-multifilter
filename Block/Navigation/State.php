@@ -21,7 +21,8 @@
 
 namespace Cybage\Multifilter\Block\Navigation;
 
-class State extends \Magento\LayeredNavigation\Block\Navigation\State {
+class State extends \Magento\LayeredNavigation\Block\Navigation\State 
+{
 
     /**
      * Catalog layer
@@ -36,10 +37,11 @@ class State extends \Magento\LayeredNavigation\Block\Navigation\State {
      * @param array $data
      */
     public function __construct(
-    \Magento\Framework\View\Element\Template\Context $context, \Magento\Catalog\Model\Layer\Resolver $layerResolver, array $data = []
+		\Magento\Framework\View\Element\Template\Context $context, 
+		\Magento\Catalog\Model\Layer\Resolver $layerResolver, 
+		array $data = []
     ) {
         $this->_catalogLayer = $layerResolver->get();
         parent::__construct($context,$layerResolver,$data);
     }
-
 }

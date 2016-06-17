@@ -21,8 +21,8 @@ namespace Cybage\Multifilter\Model\Source;
 
 use Magento\Eav\Model\Entity\Attribute\Source\AbstractSource;
 
-class Mode extends AbstractSource {
-
+class Mode extends AbstractSource 
+{
     /**
      * Retrieve option array
      *
@@ -35,5 +35,4 @@ class Mode extends AbstractSource {
             ['value' => 'slider', 'label' => __('Slider')]
         ];
     }
-
 }

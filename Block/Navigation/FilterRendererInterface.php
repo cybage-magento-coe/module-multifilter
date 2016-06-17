@@ -25,7 +25,8 @@ use Magento\Catalog\Model\Layer\Filter\FilterInterface;
  * Interface FilterRendererInterface
  * @api
  */
-interface FilterRendererInterface {
+interface FilterRendererInterface 
+{
 
     /**
      * Render filter

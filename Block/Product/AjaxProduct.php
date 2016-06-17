@@ -58,16 +58,6 @@ class AjaxProduct extends \Magento\Catalog\Block\Product\ListProduct implements 
     protected $_postDataHelper;
 
     /**
-     * @var \Magento\Framework\Url\Helper\Data
-     */
-    protected $urlHelper;
-
-    /**
-     * @var CategoryRepositoryInterface
-     */
-    protected $categoryRepository;
-
-    /**
      *
      * @var \Magento\Framework\Session\Generic
      */
@@ -89,11 +79,26 @@ class AjaxProduct extends \Magento\Catalog\Block\Product\ListProduct implements 
      * @param array $data
      */
     public function __construct(
-    \Magento\Catalog\Block\Product\Context $context, \Magento\Framework\Data\Helper\PostHelper $postDataHelper, \Magento\Catalog\Model\Layer\Resolver $layerResolver, CategoryRepositoryInterface $categoryRepository, \Magento\Framework\Url\Helper\Data $urlHelper, \Magento\Framework\Session\Generic $multifilterSession,\Magento\Framework\Registry  $coreRegistry,array $data = []
+		\Magento\Catalog\Block\Product\Context $context, 
+		\Magento\Framework\Data\Helper\PostHelper $postDataHelper, 
+		\Magento\Catalog\Model\Layer\Resolver $layerResolver, 
+		CategoryRepositoryInterface $categoryRepository, 
+		\Magento\Framework\Url\Helper\Data $urlHelper, 
+		\Magento\Framework\Session\Generic $multifilterSession,
+		\Magento\Framework\Registry  $coreRegistry,
+		array $data = []
     ) {
         $this->multifilterSession = $multifilterSession;
         $this->coreRegistry = $coreRegistry;
-        parent::__construct($context, $postDataHelper, $layerResolver, $categoryRepository, $urlHelper, $data);
+        
+		parent::__construct(
+			$context, 
+			$postDataHelper, 
+			$layerResolver, 
+			$categoryRepository, 
+			$urlHelper, 
+			$data
+		);
     }
 
     /**

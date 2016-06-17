@@ -20,24 +20,8 @@
 namespace Cybage\Multifilter\Block;
 use Magento\Framework\View\Element\Template;
 
-class Navigation extends \Magento\LayeredNavigation\Block\Navigation {
-    /**
-     * Catalog layer
-     *
-     * @var \Magento\Catalog\Model\Layer
-     */
-    protected $_catalogLayer;
-
-    /**
-     * @var \Magento\Catalog\Model\Layer\FilterList
-     */
-    protected $filterList;
-
-    /**
-     * @var \Magento\Catalog\Model\Layer\AvailabilityFlagInterface
-     */
-    protected $visibilityFlag;
-
+class Navigation extends \Magento\LayeredNavigation\Block\Navigation 
+{
     /**
      * @param Template\Context $context
      * @param \Magento\Catalog\Model\Layer\Resolver $layerResolver
@@ -52,9 +36,12 @@ class Navigation extends \Magento\LayeredNavigation\Block\Navigation {
         \Magento\Catalog\Model\Layer\AvailabilityFlagInterface $visibilityFlag,
         array $data = []
     ) {
-        parent::__construct($context,$layerResolver,$filterList,$visibilityFlag,$data);
-
-       
-    }
-   
+        parent::__construct(
+			$context,
+			$layerResolver,
+			$filterList,
+			$visibilityFlag,
+			$data
+		);
+    }   
 }

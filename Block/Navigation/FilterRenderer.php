@@ -25,7 +25,8 @@ use Magento\Catalog\Model\Layer\Filter\FilterInterface;
 use Magento\Framework\View\Element\Template;
 use Cybage\Multifilter\Block\Navigation\FilterRendererInterface;
 
-class FilterRenderer extends Template implements FilterRendererInterface {
+class FilterRenderer extends Template implements FilterRendererInterface 
+{
     const MINPRICE = 0;
     const MAXPRICE = 0;
     const GENERICPRICE = 10000000000;
@@ -35,7 +36,12 @@ class FilterRenderer extends Template implements FilterRendererInterface {
      */
     protected $_logger;
 
-    public function __construct(Template\Context $context, \Cybage\Multifilter\Helper\Data $helper, \Psr\Log\LoggerInterface $logger, array $data = array()) {
+    public function __construct(
+		Template\Context $context, 
+		\Cybage\Multifilter\Helper\Data $helper, 
+		\Psr\Log\LoggerInterface $logger, 
+		array $data = array()
+	) {
 
         parent::__construct($context, $data);
         $this->_logger = $logger;
@@ -59,13 +65,14 @@ class FilterRenderer extends Template implements FilterRendererInterface {
      * @return array of filter price
      */
     public function getPriceRange($filter) {
-        $FilterPrice = array('min' => self::MINPRICE, 'max' => self::MAXPRICE);
-        if ($filter->getName() == 'Price') {
+        $filterPrice = array('min' => self::MINPRICE, 'max' => self::MAXPRICE);
+        
+		if ($filter->getName() == 'Price') {
             $priceArr = $filter->getResource()->loadPrices(self::GENERICPRICE);
-            $FilterPrice['min'] = reset($priceArr);
-            $FilterPrice['max'] = end($priceArr);
+            $filterPrice['min'] = reset($priceArr);
+            $filterPrice['max'] = end($priceArr);
         }
-        return $FilterPrice;
+        return $filterPrice;
     }
     /**
      * Function to get filter url
@@ -77,5 +84,4 @@ class FilterRenderer extends Template implements FilterRendererInterface {
         $query = ['price' => ''];
         return $this->getUrl('*/*/*', ['_current' => true, '_use_rewrite' => true, '_query' => $query]);
     }
-
 }

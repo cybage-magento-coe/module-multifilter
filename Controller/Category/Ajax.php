@@ -1,36 +1,40 @@
 <?php
-
 namespace Cybage\Multifilter\Controller\Category;
 
 use Magento\Framework\App\Action\Context;
 
-class Ajax extends \Magento\Framework\App\Action\Action {
+class Ajax extends \Magento\Framework\App\Action\Action 
+{
 
     /**
      *
      * @var \Magento\Framework\Session\Generic
      */
-    protected $multifilterSession;
+    protected $_multifilterSession;
 
     /**
      * Core registry
      *
      * @var \Magento\Framework\Registry
      */
-    protected $coreRegistry = null;
+    protected $_coreRegistry = null;
 
     /**
      * @param Context $context
      * @param \Magento\Framework\Session\Generic $session
      */
-    public function __construct(\Magento\Framework\App\Action\Context $context, \Magento\Framework\Session\Generic $multifilterSession, \Magento\Framework\Registry $coreRegistry) {
-        $this->multifilterSession = $multifilterSession;
-        $this->coreRegistry = $coreRegistry;
+    public function __construct(
+		\Magento\Framework\App\Action\Context $context, 
+		\Magento\Framework\Session\Generic $multifilterSession, 
+		\Magento\Framework\Registry $coreRegistry
+	) {
+        $this->_multifilterSession = $multifilterSession;
+        $this->_coreRegistry = $coreRegistry;
         parent::__construct($context);
     }
 
     /**
-     * Intialization of abstract methode for \Magento\Framework\App\Action\Action
+     * Intialization of request
      */
     public function execute() {
         $filters = $this->getRequest()->getParam('checkedFilter');
@@ -61,24 +65,28 @@ class Ajax extends \Magento\Framework\App\Action\Action {
             $activeSortOpt = $this->getRequest()->getParam('currentSortOpt');
             $viewMode = $this->getRequest()->getParam('viewmode');
             $currentPage = $this->getRequest()->getParam('currentPage');
-            $this->multifilterSession->setType('custom');
-            $this->_objectManager->get('\Magento\Framework\Session\SessionManager')->setCurrentPage($currentPage);
-            $this->coreRegistry->register('activeSortOpt', $activeSortOpt);
-            $this->coreRegistry->register('activeLimit', $activeLimit);
-            $this->multifilterSession->setActiveLimit($activeLimit);
-            $this->multifilterSession->setActiveSort($activeSortOpt);
-            $this->multifilterSession->setViewMode($viewMode);
-            $this->coreRegistry->register('type', '');
-            $this->coreRegistry->register('catagories', $categories);
-            $this->coreRegistry->register('attributes', $attributes);
-            $this->_view->loadLayout();
+            
+			$this->_multifilterSession->setType('custom');
+            
+			$this->_objectManager->get('\Magento\Framework\Session\SessionManager')
+				->setCurrentPage($currentPage);
+				
+            $this->_coreRegistry->register('activeSortOpt', $activeSortOpt);
+            $this->_coreRegistry->register('activeLimit', $activeLimit);
+            
+			$this->_multifilterSession->setActiveLimit($activeLimit);
+            $this->_multifilterSession->setActiveSort($activeSortOpt);
+            $this->_multifilterSession->setViewMode($viewMode);
+            
+			$this->_coreRegistry->register('type', '');
+            $this->_coreRegistry->register('catagories', $categories);
+            $this->_coreRegistry->register('attributes', $attributes);
+            
+			$this->_view->loadLayout();
             $layout = $this->_view->getLayout();
             $block = $layout->getBlock('category.products.list');
             $this->getResponse()->setBody($block->toHtml());
             $this->_view->loadLayoutUpdates();
         }
     }
-
 }
-
-?>
