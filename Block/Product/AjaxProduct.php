@@ -68,7 +68,7 @@ class AjaxProduct extends \Magento\Catalog\Block\Product\ListProduct implements 
      *
      * @var \Magento\Framework\Registry
      */
-    public $coreRegistry = null;
+    //public $coreRegistry = null;
 
     /**
      * @param Context $context
@@ -85,11 +85,11 @@ class AjaxProduct extends \Magento\Catalog\Block\Product\ListProduct implements 
 		CategoryRepositoryInterface $categoryRepository, 
 		\Magento\Framework\Url\Helper\Data $urlHelper, 
 		\Magento\Framework\Session\Generic $multifilterSession,
-		\Magento\Framework\Registry  $coreRegistry,
+		//\Magento\Framework\Registry  $coreRegistry,
 		array $data = []
     ) {
         $this->multifilterSession = $multifilterSession;
-        $this->coreRegistry = $coreRegistry;
+        //$this->coreRegistry = $coreRegistry;
         
 		parent::__construct(
 			$context, 
