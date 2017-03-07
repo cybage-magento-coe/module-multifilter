@@ -34,17 +34,17 @@ class FilterRenderer extends Template implements FilterRendererInterface
      * Logging instance
      * @var \Psr\Log\LoggerInterface
      */
-    protected $_logger;
+    //protected $_logger;
 
     public function __construct(
 		Template\Context $context, 
 		\Cybage\Multifilter\Helper\Data $helper, 
-		\Psr\Log\LoggerInterface $logger, 
+		//\Psr\Log\LoggerInterface $logger, 
 		array $data = array()
 	) {
 
         parent::__construct($context, $data);
-        $this->_logger = $logger;
+        //$this->_logger = $logger;
     }
 
     /**
