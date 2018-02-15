@@ -18,10 +18,24 @@
  * @author     Cybage Software Pvt. Ltd. <Support_ecom@cybage.com>
  */
 namespace Cybage\Multifilter\Block;
+
 use Magento\Framework\View\Element\Template;
 
-class Navigation extends \Magento\LayeredNavigation\Block\Navigation 
+class Navigation extends \Magento\LayeredNavigation\Block\Navigation
 {
+    /**
+     * Core registry
+     *
+     * @var \Magento\Framework\Registry
+     */
+    protected $_coreRegistry = null;
+    
+    /**
+     *
+     * @var \Magento\Framework\Session\Generic
+     */
+    public $multifilterSession;
+
     /**
      * @param Template\Context $context
      * @param \Magento\Catalog\Model\Layer\Resolver $layerResolver
@@ -34,14 +48,31 @@ class Navigation extends \Magento\LayeredNavigation\Block\Navigation
         \Magento\Catalog\Model\Layer\Resolver $layerResolver,
         \Magento\Catalog\Model\Layer\FilterList $filterList,
         \Magento\Catalog\Model\Layer\AvailabilityFlagInterface $visibilityFlag,
+        \Magento\Framework\Registry $coreRegistry,
+        \Magento\Framework\Session\Generic $multifilterSession,
         array $data = []
     ) {
+        $this->multifilterSession = $multifilterSession;
+        $this->_coreRegistry = $coreRegistry;
         parent::__construct(
-			$context,
-			$layerResolver,
-			$filterList,
-			$visibilityFlag,
-			$data
-		);
-    }   
+            $context,
+            $layerResolver,
+            $filterList,
+            $visibilityFlag,
+            $data
+        );
+    }
+    
+    /**
+     * Function to get current category
+     */
+    public function getCurrentCat()
+    {
+        if (empty($this->multifilterSession->getTopCategory()) && empty($this->multifilterSession->getCategories())) {
+            $currentCat = $this->_coreRegistry->registry('current_category');
+            return $currentCat->getId();
+        } else {
+            return $this->multifilterSession->getTopCategory();
+        }
+    }
 }

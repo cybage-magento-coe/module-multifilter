@@ -19,7 +19,7 @@
  */
 namespace Cybage\Multifilter\Controller\Category;
 
-class View extends \Magento\Framework\App\Action\Action 
+class View extends \Magento\Framework\App\Action\Action
 {
 
     /**
@@ -38,218 +38,72 @@ class View extends \Magento\Framework\App\Action\Action
      * @var \Magento\Catalog\Model\Product
      */
     protected $_productModel;
+    
+    /**
+     * @var \Cybage\Multifilter\Helper\Data
+     */
+    protected $_helper;
 
     /**
      * @param Context $context
      * @param \Magento\Framework\Session\Generic $session
      */
     public function __construct(
-		\Magento\Framework\App\Action\Context $context, 
-		\Magento\Framework\Session\Generic $multifilterSession, 
-		\Magento\Framework\Registry $coreRegistry, 
-		\Magento\Catalog\Model\Product $productModel
-	) {
+        \Magento\Framework\App\Action\Context $context,
+        \Magento\Framework\Session\Generic $multifilterSession,
+        \Magento\Framework\Registry $coreRegistry,
+        \Magento\Catalog\Model\Product $productModel,
+        \Cybage\Multifilter\Helper\Data $helper
+    ) {
         $this->_multifilterSession = $multifilterSession;
         $this->_coreRegistry = $coreRegistry;
         $this->_productModel = $productModel;
+        $this->_helper = $helper;
         parent::__construct($context);
     }
 
     /**
      * Intialization of abstract methode for \Magento\Framework\App\Action\Action
      */
-    public function execute() {
-        
+    public function execute()
+    {
     }
-
+    
     /**
      * Manipulating core excute funtion for displaying multifiltered products
      *
      * @param $subject: instance of core controller excute function
-     * @param $proceed: closure to decide after which step control will be jumped to core 
+     * @param $proceed: closure to decide after which step control will be jumped to core
      * @return ajax response of product collection
      */
-    public function aroundExecute(\Magento\Catalog\Controller\Category\View $subject, \Closure $proceed) {
-        $moduleActivation = $this->_objectManager->get('Cybage\Multifilter\Helper\Data')->getConfig('multifilter/general/active');
+    public function aroundExecute(\Magento\Catalog\Controller\Category\View $subject, \Closure $proceed)
+    {
+        $moduleActivation = $this->_helper->getConfig('multifilter/general/active');
         if ($moduleActivation == '1') {
             $returnValue = $proceed();
-            
-			$filters = $this->getRequest()->getParam('checkedFilter');
-            $category = $this->_coreRegistry->registry('current_category');
-            $this->_multifilterSession->setCurrentCategory($category->getId());
-            $this->_multifilterSession->setType('coreblock');
-            
-			$this->_view->loadLayout();
+            $currentCat = $this->_coreRegistry->registry('current_category');
+            if (!empty($currentCat) && !empty($this->_multifilterSession->getCurrentCategory())) {
+                if ($currentCat->getId() != $this->_multifilterSession->getCurrentCategory()) {
+                    $this->_multifilterSession->unsCategories();
+                    $this->_multifilterSession->unsAtrributes();
+                    $this->_multifilterSession->unsTopCategory();
+                }
+            }
+            if (!empty($currentCat)) {
+                $this->_multifilterSession->unsCurrentCategory();
+                $this->_multifilterSession->setCurrentCategory($currentCat->getId());
+            }
+            $filters = $this->getRequest()->getParam('checkedFilter');
+            $this->_multifilterSession->setType('custom');
+            $this->_view->loadLayout();
             $layout = $this->_view->getLayout();
             $block = $layout->getBlock('category.products.list');
             $this->_view->loadLayoutUpdates();
-            
-			return $returnValue;
+            return $returnValue;
         } else {
             $this->_multifilterSession->setType('coreblock');
             $returnValue = $proceed();
             return $returnValue;
         }
     }
-
-    /**
-     * Function to fetch product collection based on selected filters
-     *
-     * @param $categories: array of selected category
-     * @param $attributes: array of selected attributes
-     * @return array of product collection
-     */
-    public function getProducts($categories, $attributes) {
-        $registerCat = '';
-        $currentCat = $this->_multifilterSession->getCurrentCategory();
-        if (!empty($categories)) {
-            $registerCat = array_unique($categories);
-        }
-        $collection = $this->_productModel->getCollection();
-        $collection->joinField(
-                'category_id', 
-				'catalog_category_product', 
-				'category_id', 
-				'product_id = entity_id', 
-				null
-        );
-        if (!empty($registerCat)) {
-            $collection->addFieldToFilter(
-                    'category_id', array('in' => $registerCat)
-            );
-        } else {
-            $childCategories = $this->getChildCat($currentCat);
-            if (!empty($childCategories) && is_array($childCategories)) {
-                $collection->addFieldToFilter(
-                        'category_id', array('in' => $childCategories)
-                );
-            } else {
-                $collection->addFieldToFilter(
-                        'category_id', $currentCat
-                );
-            }
-        }
-        if (!empty($attributes)) {
-            $finalArr = array();
-            $vals = array();
-            foreach ($attributes as $data) {
-                $vals[$data['name']][] = $data['value'];
-                $frontendType = $this->checkAttribute($data['name']);
-                if ($frontendType == 'multiselect') {
-                    $collection->addAttributeToFilter($data['name'], array('finset' => $data['value']));
-                }
-            }
-            foreach ($vals as $k => $v) {
-                if ($k == 'price') {
-                    $price = '';
-                    foreach ($v as $part => $partTwo) {
-                        $price = explode('-', $partTwo);
-                        if ($price[1] != '') {
-                            $filters[] = array('from' => $price[0], 'to' => $price[1]);
-                        } else {
-                            $filters[] = array('gteq' => $price[0]);
-                        }
-                    }
-                    $collection->addAttributeToFilter($k, array($filters));
-                } else {
-                    $frontendType = $this->checkAttribute($k);
-                    if ($frontendType != 'multiselect') {
-                        $collection->addAttributeToFilter($k, array('in' => $v));
-                    }
-                }
-            }
-        }
-        $parentsId = '';
-        $productId = array();
-        foreach ($collection as $data) {
-            $parentsId = $this->_objectManager->get('\Magento\ConfigurableProduct\Model\Product\Type\Configurable')
-											->getParentIdsByChild($data->getId());
-            if (!empty($parentsId)) {
-                $finalArr[] = $parentsId[0];
-            } else {
-                $productId[] = $data->getId();
-            }
-        }
-        if (!empty($finalArr)) {
-            $implodedArr = array_unique($finalArr);
-            return $implodedArr;
-        } else {
-            return array_unique($productId);
-        }
-    }
-
-    /**
-     * Function to fetch parent product collection based on child ids
-     *
-     * @param $implodedArr: array of childs from getProducts() function
-     * @return array of parent product collection
-     */
-    public function getParentCollection($implodedArr, $activeLimit, $activeSortOpt) {
-        if (!empty($implodedArr)) {
-            $productCollection = $this->_productModel->getCollection();
-            $productCollection->addFieldToFilter('entity_id', array($implodedArr));
-            $productCollection->addAttributeToSelect('*');
-            $this->_multifilterSession->settotalCount(count($productCollection->getData()));
-            $page = $this->_multifilterSession->getCurrentPage();
-            
-			if ($page > 1 && !empty($page)) {
-                $lastLimit = $activeLimit * $page + 1;
-                $firstLimit = $activeLimit + 1;
-                $productCollection->setPage($firstLimit, $lastLimit);
-                $productCollection->setPageSize($activeLimit);
-            } else {
-                if ($activeLimit) {
-                    $productCollection->setPageSize($activeLimit);
-                } else {
-                    $productCollection->setPageSize(9);
-                }
-            }
-
-            if ($activeSortOpt) {
-                $productCollection->addAttributeToSort("$activeSortOpt", 'DESC');
-            }
-
-            if (count($productCollection->getData()) > 0) {
-                return $productCollection;
-            }
-        } else {
-            return $implodedArr;
-        }
-    }
-
-    /**
-     * Function to check attribute frontend type
-     *
-     * @param $attributeCode: attribute code
-     * @return attribute frontend type
-     */
-    public function checkAttribute($attributeCode) {
-        $attributeColl = $this->_objectManager->get('\Magento\Catalog\Model\Product\Attribute\Repository')
-											->get($attributeCode);
-        $frontendType = $attributeColl->getFrontendInput();
-        return $frontendType;
-    }
-
-    /**
-     * Function to child categories of current category
-     *
-     * @param $parentCat: parent category id
-     * @return array of ids of child categories
-     */
-    public function getChildCat($parentCat) {
-        if (!empty($parentCat)) {
-            $childColl = $this->_objectManager->get('\Magento\Catalog\Model\Category')
-							->getCategories($parentCat);
-            $childCat = [];
-            foreach ($childColl as $category) {
-                $childCat[] = $category->getId();
-            }
-            if (count($childCat) > 0) {
-                return $childCat;
-            } else {
-                return null;
-            }
-        }
-    }
-
 }

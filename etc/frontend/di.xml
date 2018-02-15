@@ -62,4 +62,19 @@
             <argument name="multifilterSession" xsi:type="object">Cybage\Multifilter\Model\Session</argument>
         </arguments>
     </type>
+      <type name="Cybage\Multifilter\Block\Navigation\FilterRenderer">
+        <arguments>
+            <argument name="multifilterSession" xsi:type="object">Cybage\Multifilter\Model\Session</argument>
+        </arguments>
+    </type>
+    <type name="Cybage\Multifilter\Block\Navigation\State">
+        <arguments>
+            <argument name="multifilterSession" xsi:type="object">Cybage\Multifilter\Model\Session</argument>
+        </arguments>
+    </type>
+    <type name="Cybage\Multifilter\Helper\Data">
+        <arguments>
+            <argument name="multifilterSession" xsi:type="object">Cybage\Multifilter\Model\Session</argument>
+        </arguments>
+    </type>
 </config>

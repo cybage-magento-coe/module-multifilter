@@ -30,30 +30,27 @@ use Magento\Framework\App\Action\Action;
 ?>
 <?php
 $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
-$type = $this->multifilterSession->getType();
-$categories = $this->coreRegistry->registry('catagories');
-$currentLimit = $this->coreRegistry->registry('activeLimit');
-$currentSortOpt = $this->coreRegistry->registry('activeSortOpt');
-$attributes = $this->coreRegistry->registry('attributes');
-$_productCollection = '';
 
+$currentLimit = $this->multifilterSession->getActiveLimit();
+$currentSortOpt = $this->multifilterSession->getActiveSort();
+$categories =  $this->multifilterSession->getCategories();
+$attributes =  $this->multifilterSession->getAtrributes();
+$type = $this->multifilterSession->getType();
+
+$_productCollection = '';
 if ($type=='coreblock') {
     $_productCollection = $block->getLoadedProductCollection();
-} else {
-    $implodedArr = $objectManager->get('\Cybage\Multifilter\Controller\Category\View')->getProducts($categories, $attributes);
-    $_productCollection = $objectManager->get('\Cybage\Multifilter\Controller\Category\View')->getParentCollection($implodedArr, $currentLimit, $currentSortOpt);
-    
+}else{
+    $implodedArr = $this->helper('Cybage\Multifilter\Helper\Data')->getProducts($categories, $attributes);
+    $_productCollection = (empty($implodedArr)) ? $block->getLoadedProductCollection() : $this->helper('Cybage\Multifilter\Helper\Data')->getParentCollection($implodedArr, $currentLimit, $currentSortOpt);
 }
 ?>
-<div style="background: #000; width: 100%; height: 100%; opacity: 0.5; position: absolute; display: none; top: 0; z-index: 99" id="overlaydiv"></div>
-<div id="ajaxloader" style="display:none;position: absolute;left:60%; top: 10%; z-index: 999;">
+<div style="background: #000; width: 100%; height: 100%; opacity: 0.5; position: absolute; display: none; top: 0; z-index: 99;" id="overlaydiv"></div>
+<div id="ajaxloader" style="display:none;position: absolute;left:55%; top: 10%; z-index: 999;">
     <img src="<?php echo $block->getViewFileUrl('images/loader-1.gif'); ?>"/>
 </div>    
 <div id="result_data">
-<?php
-if (empty($categories) && empty($attributes)) {
-    ?>
-        <div id="corecollection">
+<?php if (empty($categories) && empty($attributes)) { ?>
         <?php
         $_helper = $this->helper('Magento\Catalog\Helper\Output');
         if (!$_productCollection->count()):
@@ -184,13 +181,8 @@ if (empty($categories) && empty($attributes)) {
                     </script>
         <?php endif; ?>
     <?php endif; ?>
-
-
-        </div>
-<?php }
-?>
-        <div id="ajaxcollection" style="display:none">
-    
+<?php } else {
+?>    
 
     <?php
         if (empty($_productCollection)):
@@ -222,9 +214,7 @@ if (empty($categories) && empty($attributes)) {
             <?php $iterator = 1; ?>
                 <ol class="products list items product-items">
                 <?php /** @var $_product \Magento\Catalog\Model\Product */ ?>
-                <?php 
-                $productCount = count($_productCollection->getData());
-                $this->multifilterSession->settotalCount($productCount);
+                <?php    
                 foreach ($_productCollection as $_product):
                     ?>
                         <?php /* @escapeNotVerified */ echo($iterator++ == 1) ? '<li class="item product product-item">' : '</li><li class="item product product-item">' ?>
@@ -318,17 +308,17 @@ if (empty($categories) && empty($attributes)) {
     <?php endforeach; ?>
                 </ol>
             </div>
-                    <?php echo $block->getToolbarHtml() ?>
+		<?php echo $block->getToolbarHtml() ?>
     <?php if (!$block->isRedirectToCartEnabled()) : ?>
                 <script type="text/x-magento-init">
-                    {
+				{
                     "[data-role=tocart-form], .form.map.checkout": {
                     "catalogAddToCart": {}
                     }
-                    }
+				}
                 </script>
     <?php endif; ?>
 <?php endif; ?>
-
-           </div>
+	<?php }
+?>  
 </div>

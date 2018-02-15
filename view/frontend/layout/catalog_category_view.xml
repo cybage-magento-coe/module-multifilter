@@ -20,65 +20,15 @@
  */
 -->
 <page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
-    <head>
-        <css src="Cybage_Multifilter/css/customstyle.css"/>
-    </head>
     <body>
         <referenceContainer name="content">
-            <block class="Cybage\Multifilter\Block\Product\AjaxProduct" name="category.products.list" as="product_list" template="Cybage_Multifilter::product/list.phtml">
+            <block class="Cybage\Multifilter\Block\Product\AjaxProduct" name="category.products.list" as="product_list" template="Cybage_Multifilter::product/list.phtml" cacheable="false">
                 <container name="category.product.list.additional" as="additional" />
                 <block class="Magento\Framework\View\Element\RendererList" name="category.product.type.details.renderers" as="details.renderers">
                     <block class="Magento\Framework\View\Element\Template" as="default"/>
                 </block>
-                <block class="Magento\Catalog\Block\Product\ProductList\Toolbar" name="product_list_toolbar" template="Magento_Catalog::product/list/toolbar.phtml">
-                    <block class="Magento\Theme\Block\Html\Pager" name="product_list_toolbar_pager"/>
-                    <!-- The following code shows how to set your own pager increments -->
-                    <!--
-                        <action method="setDefaultListPerPage">
-                        <argument name="limit" xsi:type="string">4</argument>
-                    </action>
-                    <action method="setDefaultGridPerPage">
-                        <argument name="limit" xsi:type="string">3</argument>
-                    </action>
-                    <action method="addPagerLimit">
-                        <argument name="mode" xsi:type="string">list</argument>
-                        <argument name="limit" xsi:type="string">2</argument>
-                    </action>
-                    <action method="addPagerLimit">
-                        <argument name="mode" xsi:type="string">list</argument>
-                        <argument name="limit" xsi:type="string">4</argument>
-                    </action>
-                    <action method="addPagerLimit">
-                        <argument name="mode" xsi:type="string">list</argument>
-                        <argument name="limit" xsi:type="string">6</argument>
-                    </action>
-                    <action method="addPagerLimit">
-                        <argument name="mode" xsi:type="string">list</argument>
-                        <argument name="limit" xsi:type="string">8</argument>
-                    </action>
-                    <action method="addPagerLimit" translate="label">
-                        <argument name="mode" xsi:type="string">list</argument>
-                        <argument name="limit" xsi:type="string">all</argument>
-                        <argument name="label" xsi:type="string">All</argument>
-                    </action>
-                    <action method="addPagerLimit">
-                        <argument name="mode" xsi:type="string">grid</argument>
-                        <argument name="limit" xsi:type="string">3</argument>
-                    </action>
-                    <action method="addPagerLimit">
-                        <argument name="mode" xsi:type="string">grid</argument>
-                        <argument name="limit" xsi:type="string">6</argument>
-                    </action>
-                    <action method="addPagerLimit">
-                        <argument name="mode" xsi:type="string">grid</argument>
-                        <argument name="limit" xsi:type="string">9</argument>
-                    </action>
-                    <action method="addPagerLimit" translate="label">
-                        <argument name="mode" xsi:type="string">grid</argument>
-                        <argument name="limit" xsi:type="string">all</argument>
-                        <argument name="label" xsi:type="string">All</argument>
-                    </action>
-                    -->
+                <block class="Cybage\Multifilter\Block\Product\Customtoolbar" name="product_list_toolbar" template="Cybage_Multifilter::product/list/toolbar.phtml" cacheable="false">
+                    <block class="Magento\Theme\Block\Html\Pager" name="product_list_toolbar_pager" template="Cybage_Multifilter::pagger.phtml" cacheable="false"/>
                 </block>
                 <action method="setToolbarBlockName">
                     <argument name="name" xsi:type="string">product_list_toolbar</argument>

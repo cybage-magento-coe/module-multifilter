@@ -23,7 +23,7 @@ namespace Cybage\Multifilter\Block\Product;
 use Magento\Catalog\Helper\Product\ProductList;
 use Magento\Catalog\Model\Product\ProductList\Toolbar as ToolbarModel;
 
-class Customtoolbar extends \Magento\Catalog\Block\Product\ProductList\Toolbar 
+class Customtoolbar extends \Magento\Catalog\Block\Product\ProductList\Toolbar
 {
 
     /**
@@ -135,6 +135,10 @@ class Customtoolbar extends \Magento\Catalog\Block\Product\ProductList\Toolbar
     public $coreRegistry = null;
 
     /**
+     * @var \Cybage\Multifilter\Helper\Data
+     */
+    protected $_helperData;
+    /**
      * @param \Magento\Framework\View\Element\Template\Context $context
      * @param \Magento\Catalog\Model\Session $catalogSession
      * @param \Magento\Catalog\Model\Config $catalogConfig
@@ -145,63 +149,65 @@ class Customtoolbar extends \Magento\Catalog\Block\Product\ProductList\Toolbar
      * @param array $data
      */
     public function __construct(
-		\Magento\Framework\View\Element\Template\Context $context, 
-		\Magento\Catalog\Model\Session $catalogSession, 
-		\Magento\Catalog\Model\Config $catalogConfig, 
-		ToolbarModel $toolbarModel, 
-		\Magento\Framework\Url\EncoderInterface $urlEncoder, 
-		ProductList $productListHelper, 
-		\Magento\Framework\Data\Helper\PostHelper $postDataHelper,
-		\Magento\Framework\Session\Generic $multifilterSession,
-		\Magento\Framework\Registry  $coreRegistry,
-		array $data = []
+        \Magento\Framework\View\Element\Template\Context $context,
+        \Magento\Catalog\Model\Session $catalogSession,
+        \Magento\Catalog\Model\Config $catalogConfig,
+        ToolbarModel $toolbarModel,
+        \Magento\Framework\Url\EncoderInterface $urlEncoder,
+        ProductList $productListHelper,
+        \Magento\Framework\Data\Helper\PostHelper $postDataHelper,
+        \Magento\Framework\Session\Generic $multifilterSession,
+        \Magento\Framework\Registry  $coreRegistry,
+        \Cybage\Multifilter\Helper\Data $helperData,
+        array $data = []
     ) {
         $this->multifilterSession = $multifilterSession;
         $this->coreRegistry = $coreRegistry;
-        
-		parent::__construct(
-			$context, 
-			$catalogSession, 
-			$catalogConfig, 
-			$toolbarModel, 
-			$urlEncoder, 
-			$productListHelper, 
-			$postDataHelper, 
-			$data
-		);
+        $this->_helperData = $helperData;
+        parent::__construct(
+            $context,
+            $catalogSession,
+            $catalogConfig,
+            $toolbarModel,
+            $urlEncoder,
+            $productListHelper,
+            $postDataHelper,
+            $data
+        );
     }
 
     /**
      * Function to getPagerHtml to create custom pagination for ajax block
      * @return pager block instance
      */
-    public function getPagerHtml() {
-        $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
-        $categories = $this->coreRegistry ->registry('catagories');
-        $attributes = $this->coreRegistry ->registry('attributes');
-        $type = $this->multifilterSession->getType();
-        
-		if ($type == 'custom') {
-            $pagerBlock = $this->getChildBlock('product_list_toolbar_pager');
-            $implodeArr = $objectManager->get('Cybage\Multifilter\Controller\Category\View')
-										->getProducts($categories, $attributes);
-            
-			$activeLimit= $this->multifilterSession->setActiveLimit();
-            $activeSort = $this->multifilterSession->getActiveSort();
-            
-			$collection = $objectManager->get('Cybage\Multifilter\Controller\Category\View')
-										->getParentCollection($implodeArr, $activeLimit, $activeSort);
-            
-			if ($pagerBlock instanceof \Magento\Framework\DataObject) {
-                /* @var $pagerBlock \Magento\Theme\Block\Html\Pager */
-                $pagerBlock->setCollection(
-                        $collection
-                );
-
-                return $pagerBlock->toHtml();
-            }
+    public function getPagerHtml()
+    {
+        $categories = $this->multifilterSession->getCategories();
+        $attributes = $this->multifilterSession->getAtrributes();
+        $pagerBlock = $this->getChildBlock('product_list_toolbar_pager');
+        $currentLimit = $this->multifilterSession->getActiveLimit();
+        $currentSortOpt = $this->multifilterSession->getActiveSort();
+        $implodedArr = $this->_helperData->getProducts($categories, $attributes);
+        $productCollection = $this->_helperData->getParentCollection($implodedArr, $currentLimit, $currentSortOpt);
+        if ($pagerBlock instanceof \Magento\Framework\DataObject) {
+            /* @var $pagerBlock \Magento\Theme\Block\Html\Pager */
+            ($currentLimit > 0) ? $pagerBlock->setLimit($currentLimit):$pagerBlock->setLimit(9);
+            $pagerBlock->setCollection($productCollection);
+            return $pagerBlock->toHtml();
+        }
+    }
+    
+    /**
+     * Function to get Current category to create custom pagination for ajax block
+     * @return pager block instance
+     */
+    public function getCurrentCat()
+    {
+        if (empty($this->multifilterSession->getTopCategory()) && empty($this->multifilterSession->getCategories())) {
+            $currentCat = $this->coreRegistry->registry('current_category');
+            return $currentCat->getId();
         } else {
-            return parent::getPagerHtml();
+            return $this->multifilterSession->getTopCategory();
         }
     }
 }

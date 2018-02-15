@@ -28,6 +28,8 @@
 <?php
 $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
 $currentPage = $objectManager->get('\Magento\Framework\Session\SessionManager')->getCurrentPage();
+
+$currentCatId = $objectManager->get('\Cybage\Multifilter\Block\Product\Customtoolbar')->getCurrentCat();
 if ($block->getCollection()->getSize()):
     ?>
 
@@ -63,7 +65,7 @@ if ($block->getCollection()->getSize()):
                                 <span>...</span>
                             </a>
                         </li>
-        <?php endif; ?>
+                    <?php endif; ?>
 
                     <?php foreach ($block->getFramePages() as $_page): ?>
                         <?php 
@@ -133,21 +135,27 @@ if ($block->getCollection()->getSize()):
                 selectedFilter.push(jQuery(this).val());
             }
         });
+        var categoryFilter;
+        if (jQuery('#filterlist .multifilter.category').is(':checked')) {
+        } else {
+            <?php if($currentCatId){ ?>
+            categoryFilter = <?php echo $currentCatId ?>;
+             <?php } ?>
+        }
         jQuery('#ajaxloader').show();
-        jQuery('#overlaydiv').show();
+        jQuery('#overlaydiv').show();        
         jQuery.ajax({
-            url: "/multifilter/category/ajax",
+            url: '<?php echo $block->getUrl("multifilter/category/ajax");?>',
             type: "POST",
-            data: {"currentLimit":jQuery('#limiter').val(),"currentSortOpt":jQuery('#sorter').val(),"checkedFilter":selectedFilter,"currentPage":value},
-            dataType: "html",
+            data: {"currentLimit":jQuery('#limiter').val(),"currentSortOpt":jQuery('#sorter').val(),"checkedFilter":selectedFilter,"currentPage":value,"categoryFilter":categoryFilter},
+            dataType: "json",
             success: function(data) {
                 jQuery('#ajaxloader').hide();
                 jQuery('#overlaydiv').hide();
-                jQuery('#result_data').html(data);
+                jQuery('#result_data').html(data.list);
                 jQuery('#ajaxcollection').show();
                 jQuery('#corecollection').hide();
             }
         });
-        
     }
 </script>

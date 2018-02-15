@@ -29,7 +29,8 @@ use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\DataObject\IdentityInterface;
 use Magento\Framework\View\Element\Template;
 
-class AjaxProduct extends \Magento\Catalog\Block\Product\ListProduct implements IdentityInterface {
+class AjaxProduct extends \Magento\Catalog\Block\Product\ListProduct implements IdentityInterface
+{
 
     /**
      * Default toolbar block name
@@ -68,7 +69,7 @@ class AjaxProduct extends \Magento\Catalog\Block\Product\ListProduct implements 
      *
      * @var \Magento\Framework\Registry
      */
-    //public $coreRegistry = null;
+    public $coreRegistry = null;
 
     /**
      * @param Context $context
@@ -79,34 +80,34 @@ class AjaxProduct extends \Magento\Catalog\Block\Product\ListProduct implements 
      * @param array $data
      */
     public function __construct(
-		\Magento\Catalog\Block\Product\Context $context, 
-		\Magento\Framework\Data\Helper\PostHelper $postDataHelper, 
-		\Magento\Catalog\Model\Layer\Resolver $layerResolver, 
-		CategoryRepositoryInterface $categoryRepository, 
-		\Magento\Framework\Url\Helper\Data $urlHelper, 
-		\Magento\Framework\Session\Generic $multifilterSession,
-		//\Magento\Framework\Registry  $coreRegistry,
-		array $data = []
+        \Magento\Catalog\Block\Product\Context $context,
+        \Magento\Framework\Data\Helper\PostHelper $postDataHelper,
+        \Magento\Catalog\Model\Layer\Resolver $layerResolver,
+        CategoryRepositoryInterface $categoryRepository,
+        \Magento\Framework\Url\Helper\Data $urlHelper,
+        \Magento\Framework\Session\Generic $multifilterSession,
+        \Magento\Framework\Registry  $coreRegistry,
+        array $data = []
     ) {
         $this->multifilterSession = $multifilterSession;
-        //$this->coreRegistry = $coreRegistry;
+        $this->coreRegistry = $coreRegistry;
         
-		parent::__construct(
-			$context, 
-			$postDataHelper, 
-			$layerResolver, 
-			$categoryRepository, 
-			$urlHelper, 
-			$data
-		);
+        parent::__construct(
+            $context,
+            $postDataHelper,
+            $layerResolver,
+            $categoryRepository,
+            $urlHelper,
+            $data
+        );
     }
 
     /**
      * Function to check wheather the request is from Ajax
      * @return boolean
      */
-    public function isAjax() {
+    public function isAjax()
+    {
         return $this->_request->isXmlHttpRequest() || $this->_request->getParam('isAjax');
     }
-
 }

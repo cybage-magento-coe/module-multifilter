@@ -22,7 +22,7 @@
 $expandFilters = $this->helper('Cybage\Multifilter\Helper\Data')->getConfig('multifilter/general/expand_filters');
 $blocks = '[0,1,2,3,4,5,6,7]';
 $activeBlocks = $expandFilters == '1'?$blocks:'false';
-$currentCat = $block->getCurrentCat();
+$currentCatId = $block->getCurrentCat();
 
 if ($block->canShowBlock()): ?>
     <div class="block filter" id="layered-filter-block" data-mage-init='{"collapsible":{"openedState": "active", "collapsible": true, "active": false, "collateral": { "openedState": "filter-active", "element": "body" } }}'>
@@ -32,7 +32,8 @@ if ($block->canShowBlock()): ?>
             <strong data-role="title"><?php /* @escapeNotVerified */ echo __('Shop By') ?></strong>
         </div>
         <div class="block-content filter-content">
-            <?php echo $block->getChildHtml('state') ?>
+            <?php 
+            echo $block->getChildHtml('state') ?>
 
             <?php if ($block->getLayer()->getState()->getFilters()): ?>
                 <div class="block-actions filter-actions">
@@ -45,10 +46,12 @@ if ($block->canShowBlock()): ?>
                 ?>
                 <?php if ($filter->getItemsCount()): ?>
                     <?php if (!$wrapOptions): ?>
-                        <input type="button" class="action tocart primary" id="resetFilter" value="Reset" style="float:right;margin-top:8px;"/>
-                        <input type="button" class="action tocart primary" id="refineFilter" value="Refine" style="float:right;margin-top:8px;margin-right:7px;"/>
-                        <strong role="heading" aria-level="2" class="block-subtitle filter-subtitle"><?php /* @escapeNotVerified */ echo __('Shopping Options') ?></strong>
+				
+                      
                         <div class="filter-options" id="narrow-by-list" data-role="content" data-mage-init='{"accordion":{"openedState": "active", "collapsible": true, "active":<?php echo $activeBlocks;?>, "multipleCollapsible": true}}'>
+							<strong role="heading" aria-level="2" class="block-subtitle filter-subtitle"><?php /* @escapeNotVerified */ echo __('Shopping Options') ?></strong>
+							<input type="button" class="action tocart primary" id="refineFilter" value="Refine"/>
+							<input type="button" class="action tocart primary" id="resetFilter" value="Reset"/>
                             <?php $wrapOptions = true;
                         endif;
                         ?>
@@ -70,13 +73,86 @@ if ($block->canShowBlock()): ?>
                 </script>
     <?php endif; ?>
         </div>
-    </div>
-<?php endif; ?>
+    </div>                          
 
-<script>
-    
-    require(["jquery", "jquery/ui"], function ($) {
+<?php endif; ?>
+<script>    
+    require(["jquery", 'Magento_Ui/js/modal/alert', "jquery/ui"], function ($, alert) {
         $('#refineFilter').click(function(){
+            var selectedFilter = [];
+            $('.multifilter').each(function(index,element){
+                if($(this).is(':checked')){
+                    selectedFilter.push($(this).val());
+                }
+            });
+            var categoryFilter;
+            if ($('#filterlist .multifilter.category').is(':checked')) {
+            } else {
+                <?php if($currentCatId){ ?>
+					categoryFilter = <?php echo $currentCatId ?>;
+                 <?php } ?>
+            }
+            var sliderprice = $('#sliderprice').val();
+            if(sliderprice != ''){
+                selectedFilter.push(sliderprice);
+            }            
+            if(selectedFilter != ''){
+            $.ajax({
+                url: '<?php echo $block->getUrl("multifilter/category/ajax");?>',
+                type: "POST",
+                data: (categoryFilter) ? {"checkedFilter":selectedFilter,"categoryFilter":categoryFilter} : {"checkedFilter":selectedFilter},
+				showLoader: true,
+                dataType: "json",
+                success: function(data) {
+                    $('#result_data').html(data.list);
+                    $('.filter-current').html(data.content);
+                    $('#ajaxcollection').show();
+                    $('#corecollection').hide();
+                }
+            });
+            }else{
+				 alert({
+					title: false,
+					content: 'Please select at least one filter',
+					buttons: false,
+					modalClass: "multifilter-alert",
+					actions: {
+					always: function (){}
+					}
+				});
+            }
+        });
+        $('#resetFilter').click(function(){
+        $('.multifilter').each(function(index,element){
+                if($(this).is(':checked')){
+                    $(this).attr('checked',false);
+                }
+            });
+            var categoryFilter;
+            if ($('#filterlist .multifilter.category').is(':checked')) {
+            } else {
+                <?php if($currentCatId){ ?>
+                categoryFilter = <?php echo $currentCatId ?>;
+                 <?php } ?>
+            }
+            $.ajax({
+                url: '<?php echo $block->getUrl("multifilter/category/ajax");?>',
+                type: "POST",
+                data: (categoryFilter) ? {"categoryFilter":categoryFilter} : {},
+				showLoader: true,
+                dataType: "json",
+                success: function(data) {
+                    $('#result_data').html(data.list);
+                    $('.filter-current').html(data.content);
+                    $('#ajaxcollection').show();
+                    $('#corecollection').hide();
+                }
+            });
+        });
+        
+        $(document).on('click', '.item .action.remove', function(){
+            var idValue = $(this).parent().find(".filter-id-value").html();
+            $('.filter-options .item').find('#' + idValue).removeAttr('checked');
             var selectedFilter = [];
             $('.multifilter').each(function(index,element){
                 if($(this).is(':checked')){
@@ -87,35 +163,26 @@ if ($block->canShowBlock()): ?>
             if(sliderprice != ''){
                 selectedFilter.push(sliderprice);
             }
-            
-            if(selectedFilter != ''){
-            $('#overlaydiv').show();
-            $('#ajaxloader').show();
+            var categoryFilter;
+            if ($('#filterlist .multifilter.category').is(':checked')) {
+            } else {
+                <?php if($currentCatId){ ?>
+					categoryFilter = <?php echo $currentCatId ?>;
+                 <?php } ?>
+            }
             $.ajax({
-                url: "/multifilter/category/ajax",
+                url: '<?php echo $block->getUrl("multifilter/category/ajax");?>',
                 type: "POST",
-                data: {"checkedFilter":selectedFilter},
-                dataType: "html",
+                data: (categoryFilter) ? {"checkedFilter":selectedFilter,"categoryFilter":categoryFilter} : {"checkedFilter":selectedFilter},
+                dataType: "json",
+				showLoader: true,
                 success: function(data) {
-                    $('#ajaxloader').hide();
-                    $('#overlaydiv').hide();
-                    $('#result_data').html(data);
+                    $('#result_data').html(data.list);
+                    $('.filter-current').html(data.content);
                     $('#ajaxcollection').show();
                     $('#corecollection').hide();
                 }
             });
-            }else{
-             window.location.reload();
-            }
         });
-        $('#resetFilter').click(function(){
-        $('.multifilter').each(function(index,element){
-                if($(this).is(':checked')){
-                    $(this).attr('checked',false);
-                }
-                window.location.reload();
-            });
-        });
-    }); 
-    
-</script>    
+    });    
+</script>

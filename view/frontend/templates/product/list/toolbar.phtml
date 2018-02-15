@@ -19,21 +19,12 @@
  */
 ?>
 <?php
-
-/**
- * Product list toolbar
- *
- * @var $block Cybage\Multifilter\Block\Product\Customtoolbar
- */
-use Cybage\Multifilter\Block\Product\Customtoolbar;
-?>
-<?php
 $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
-$productColl = $this->multifilterSession->gettotalCount();
+$productColl = ($objectManager->get('\Magento\Framework\Session\SessionManager')->gettotalCount() > 0) ? $objectManager->get('\Magento\Framework\Session\SessionManager')->gettotalCount():$block->getCollection()->getSize();
 $activeLimit = $this->multifilterSession->getActiveLimit();
 $activeSort = $this->multifilterSession->getActiveSort();
 $currentSwitcher = $this->multifilterSession->getViewMode();
-
+$currentCatId = $block->getCurrentCat();
 if(empty($currentSwitcher)){
     $currentSwitcher = 'grid';
 }
@@ -67,7 +58,7 @@ if ($block->getCollection()->getSize()):
                     <?php endforeach; ?>
                 <?php endif; ?>
             </div>
-            <?php //include ($block->getTemplateFile('Magento_Catalog::product/list/toolbar/viewmode.phtml')) ?>
+			
         <?php endif; ?>
         <p class="toolbar-amount" id="toolbar-amount">
             <?php if ($productColl == 1): ?>
@@ -78,7 +69,6 @@ if ($block->getCollection()->getSize()):
                 ?>
             <?php endif; ?>
         </p>
-        <?php //include ($block->getTemplateFile('Magento_Catalog::product/list/toolbar/amount.phtml')) ?>
 
         <?php echo $block->getPagerHtml() ?>
         <div class="field limiter">
@@ -98,12 +88,10 @@ if ($block->getCollection()->getSize()):
             <span class="limiter-text"><?php /* @escapeNotVerified */ echo __('per page') ?></span>
         </div>
 
-        <?php //include ($block->getTemplateFile('Magento_Catalog::product/list/toolbar/limiter.phtml')) ?>
-
         <?php if ($block->isExpanded()): ?>
             <div class="toolbar-sorter sorter">
                 <label class="sorter-label" for="sorter"><?php /* @escapeNotVerified */ echo __('Sort By') ?></label>
-                <select id="sorter" data-role="sorter" class="sorter-options" onchange="selectsort(this)">
+                <select id="sorter" class="sorter-options" onchange="selectsort(this)">
                     <?php foreach ($block->getAvailableOrders() as $_key => $_order): ?>
                         <option value="<?php /* @escapeNotVerified */ echo $_key; ?>"
                         <?php if ($activeSort == $_key): ?>
@@ -114,17 +102,7 @@ if ($block->getCollection()->getSize()):
                         </option>
                     <?php endforeach; ?>
                 </select>
-                <?php if ($block->getCurrentDirection() == 'desc'): ?>
-                    <a title="<?php /* @escapeNotVerified */ echo __('Set Ascending Direction') ?>" href="#" class="action sorter-action sort-desc" data-role="direction-switcher" data-value="asc">
-                        <span><?php /* @escapeNotVerified */ echo __('Set Ascending Direction') ?></span>
-                    </a>
-                <?php else: ?>
-                    <a title="<?php /* @escapeNotVerified */ echo __('Set Descending Direction') ?>" href="#" class="action sorter-action sort-asc" data-role="direction-switcher" data-value="desc">
-                        <span><?php /* @escapeNotVerified */ echo __('Set Descending Direction') ?></span>
-                    </a>
-                <?php endif; ?>
             </div>
-            <?php //include ($block->getTemplateFile('Magento_Catalog::product/list/toolbar/sorter.phtml')) ?>
         <?php endif; ?>
     </div>
 <?php endif ?>
@@ -138,17 +116,24 @@ if ($block->getCollection()->getSize()):
                 selectedFilter.push(jQuery(this).val());
             }
         });
+        var categoryFilter;
+        if (jQuery('#filterlist .multifilter.category').is(':checked')) {
+        } else {
+            <?php if($currentCatId){ ?>
+            categoryFilter = <?php echo $currentCatId ?>;
+             <?php } ?>
+        }
         jQuery('#ajaxloader').show();
         jQuery('#overlaydiv').show();
         jQuery.ajax({
-            url: "/multifilter/category/ajax",
+            url: '<?php echo $block->getUrl("multifilter/category/ajax");?>',
             type: "POST",
-            data: {"currentLimit":value.value,"checkedFilter":selectedFilter},
-            dataType: "html",
+            data: {"currentLimit":value.value,"checkedFilter":selectedFilter,"categoryFilter":categoryFilter},
+            dataType: "json",
             success: function(data) {
                 jQuery('#ajaxloader').hide();
                 jQuery('#overlaydiv').hide();
-                jQuery('#result_data').html(data);
+                jQuery('#result_data').html(data.list);
                 jQuery('#ajaxcollection').show();
                 jQuery('#corecollection').hide();
             }
@@ -162,17 +147,24 @@ if ($block->getCollection()->getSize()):
                 selectedFilter.push(jQuery(this).val());
             }
         });
+        var categoryFilter;
+        if (jQuery('#filterlist .multifilter.category').is(':checked')) {
+        } else {
+            <?php if($currentCatId){ ?>
+				categoryFilter = <?php echo $currentCatId ?>;
+             <?php } ?>
+        }
         jQuery('#ajaxloader').show();
         jQuery('#overlaydiv').show();
         jQuery.ajax({
-            url: "/multifilter/category/ajax",
+            url: '<?php echo $block->getUrl("multifilter/category/ajax");?>',
             type: "POST",
-            data: {"currentLimit":jQuery('#limiter').val(),"currentSortOpt":value.value,"checkedFilter":selectedFilter},
-            dataType: "html",
+            data: {"currentLimit":jQuery('#limiter').val(),"currentSortOpt":value.value,"checkedFilter":selectedFilter,"categoryFilter":categoryFilter},
+            dataType: "json",
             success: function(data) {
                 jQuery('#ajaxloader').hide();
                 jQuery('#overlaydiv').hide();
-                jQuery('#result_data').html(data);
+                jQuery('#result_data').html(data.list);
                 jQuery('#ajaxcollection').show();
                 jQuery('#corecollection').hide();
             }
@@ -180,28 +172,34 @@ if ($block->getCollection()->getSize()):
         
     }
     
-    function selectswitcher(value){
+    function selectswitcher(value)
+	{
         var selectedFilter = [];
         jQuery('.multifilter').each(function(index,element){
             if(jQuery(this).is(':checked')){
                 selectedFilter.push(jQuery(this).val());
             }
-        });
+        });        
+        if (jQuery('#filterlist .multifilter.category').is(':checked')) {
+        } else {
+            <?php if($currentCatId){ ?>
+            categoryFilter = <?php echo $currentCatId ?>;
+             <?php } ?>
+        }
         jQuery('#ajaxloader').show();
         jQuery('#overlaydiv').show();
         jQuery.ajax({
-            url: "/multifilter/category/ajax",
+            url: '<?php echo $block->getUrl("multifilter/category/ajax");?>',
             type: "POST",
-            data: {"currentLimit":jQuery('#limiter').val(),"currentSortOpt":jQuery('#sorter').val(),"checkedFilter":selectedFilter,"viewmode":value},
-            dataType: "html",
+            data: {"currentLimit":jQuery('#limiter').val(),"currentSortOpt":jQuery('#sorter').val(),"checkedFilter":selectedFilter,"viewmode":value,"categoryFilter":categoryFilter},
+            dataType: "json",
             success: function(data) {
                 jQuery('#ajaxloader').hide();
                 jQuery('#overlaydiv').hide();
-                jQuery('#result_data').html(data);
+                jQuery('#result_data').html(data.list);
                 jQuery('#ajaxcollection').show();
                 jQuery('#corecollection').hide();
             }
-        });
-        
+        });        
     }
 </script> 

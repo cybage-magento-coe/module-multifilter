@@ -24,14 +24,30 @@
  *
  * @var $block \Magento\LayeredNavigation\Block\Navigation\FilterRenderer
  */
+$categories =  $block->getSessionCategories();
+if(empty($categories)) {
+    $categories =[];
+}
+$attributes =  $block->getSessionAttributes();
+$vals = [];
+if(!empty($attributes)) {
+    foreach ($attributes as $data) {        
+        $vals[] = $data['value'];
+    }
+}
 ?>
 <?php
 $priceDisplayMode = $this->helper('Cybage\Multifilter\Helper\Data')->getConfig('multifilter/general/display_mode');
 if ($filter->getName() == 'Price' && $priceDisplayMode == 'slider'):
     ?>
-    <?php $range = $this->getPriceRange($filter); ?>
+    <?php     
+    $range = $this->getPriceRange($filter);
+    if(array_key_exists('price', $vals)) {
+        $price = explode('-', $vals['price']);
+        $range['min'] = $price[0];
+        $range['max'] = $price[1];
+    }?>
     <?php $url = $this->getFilterUrl($filter); ?>
-    <?php //var_dump($url);  ?>
     <script>
         var price_url = "<?= $url; ?>";
         require([
@@ -53,7 +69,6 @@ if ($filter->getName() == 'Price' && $priceDisplayMode == 'slider'):
                     $( "#amount" ).val( "$" + ui.values[ 0 ] + " - $" + ui.values[ 1 ] );
                 },
                 change: function( event, ui ) {
-                    //alert(ui.values[0]+"~"+ui.values[1]);
                     var text = "attribute?price?";
                     $('#sliderprice').val(text+ui.values[0]+"-"+ui.values[1]);
                 }
@@ -74,22 +89,22 @@ if ($filter->getName() == 'Price' && $priceDisplayMode == 'slider'):
         <?php
         $showProductCount = $this->helper('Cybage\Multifilter\Helper\Data')->getConfig('multifilter/general/product_count');
         foreach ($filterItems as $filterItem):
+           
             $parameters = substr($filterItem->getUrl(), strpos($filterItem->getUrl(), "?") + 1);
             $arr = explode('=', $parameters);
             ?>
             <li class="item" id="filterlist">
-                <?php if ($arr[0] == 'cat') { ?>
-                    <input type="checkbox" id="<?php echo $arr[1]; ?>" class="multifilter" value="<?php echo 'category' . '?' . $arr[0] . '?' . $arr[1]; ?>">
-                <?php } else { ?>
-                    <input type="checkbox" id="<?php echo $arr[1]; ?>" class="multifilter" value="<?php echo 'attribute' . '?' . $arr[0] . '?' . $arr[1]; ?>">
-                <?php } ?>
+                <?php if ($arr[0] == 'cat'): ?>
+                    <input type="checkbox" id="<?php echo $arr[1]; ?>" class="multifilter category" value="<?php echo 'category' . '?' . $arr[0] . '?' . $arr[1]; ?>" <?php if(in_array($arr[1], $categories)) echo "checked";?>>
+                <?php else: ?>
+                    <input type="checkbox" id="<?php echo $arr[1]; ?>" class="multifilter" value="<?php echo 'attribute' . '?' . $arr[0] . '?' . $arr[1]; ?>" <?php if(in_array($arr[1], $vals)) echo "checked";?>>
+                <?php endif; ?>
                     <input type="hidden" id="sliderprice" class="multifilter" value="">
                 <?php if ($filterItem->getCount() > 0):
                     ?>
                     <a href="javascript:void(0)">
                         <?php /* @escapeNotVerified */ echo $filterItem->getLabel() ?>
                         <?php
-                        //Multifilter : Condition for showning product count depanding upon system configuration for product display count
                         if ($showProductCount == '1') {
                             if ($this->helper('\Magento\Catalog\Helper\Data')->shouldDisplayProductCountOnLayer()):
                                 ?>
@@ -103,7 +118,6 @@ if ($filter->getName() == 'Price' && $priceDisplayMode == 'slider'):
                 <?php else: ?>
                     <?php /* @escapeNotVerified */ echo $filterItem->getLabel() ?>
                     <?php
-                    //Multifilter : Condition for showning product count depanding upon system configuration for product display count
                     if ($showProductCount == '1') {
                         if ($this->helper('\Magento\Catalog\Helper\Data')->shouldDisplayProductCountOnLayer()):
                             ?>
@@ -118,5 +132,3 @@ if ($filter->getName() == 'Price' && $priceDisplayMode == 'slider'):
         <?php endforeach ?>
     </ol>
 <?php endif; ?>
-    
-        

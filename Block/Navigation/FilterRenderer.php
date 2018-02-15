@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Cybage Multifilter Layered Navigation Plugin
  *
@@ -25,7 +24,7 @@ use Magento\Catalog\Model\Layer\Filter\FilterInterface;
 use Magento\Framework\View\Element\Template;
 use Cybage\Multifilter\Block\Navigation\FilterRendererInterface;
 
-class FilterRenderer extends Template implements FilterRendererInterface 
+class FilterRenderer extends Template implements FilterRendererInterface
 {
     const MINPRICE = 0;
     const MAXPRICE = 0;
@@ -34,24 +33,33 @@ class FilterRenderer extends Template implements FilterRendererInterface
      * Logging instance
      * @var \Psr\Log\LoggerInterface
      */
-    //protected $_logger;
+    protected $_logger;
 
+    /**
+     *
+     * @var \Magento\Framework\Session\Generic
+     */
+    protected $_multifilterSession;
+    
     public function __construct(
-		Template\Context $context, 
-		\Cybage\Multifilter\Helper\Data $helper, 
-		//\Psr\Log\LoggerInterface $logger, 
-		array $data = array()
-	) {
+        Template\Context $context,
+        \Cybage\Multifilter\Helper\Data $helper,
+        \Psr\Log\LoggerInterface $logger,
+        \Magento\Framework\Session\Generic $multifilterSession,
+        array $data = []
+    ) {
 
         parent::__construct($context, $data);
-        //$this->_logger = $logger;
+        $this->_multifilterSession = $multifilterSession;
+        $this->_logger = $logger;
     }
 
     /**
      * @param FilterInterface $filter
      * @return string
      */
-    public function render(FilterInterface $filter) {
+    public function render(FilterInterface $filter)
+    {
         $this->assign('filter', $filter);
         $this->assign('filterItems', $filter->getItems());
         $html = $this->_toHtml();
@@ -64,10 +72,10 @@ class FilterRenderer extends Template implements FilterRendererInterface
      * @param $filter: filter instance
      * @return array of filter price
      */
-    public function getPriceRange($filter) {
+    public function getPriceRange($filter)
+    {
         $filterPrice = array('min' => self::MINPRICE, 'max' => self::MAXPRICE);
-        
-		if ($filter->getName() == 'Price') {
+        if ($filter->getName() == 'Price') {
             $priceArr = $filter->getResource()->loadPrices(self::GENERICPRICE);
             $filterPrice['min'] = reset($priceArr);
             $filterPrice['max'] = end($priceArr);
@@ -80,8 +88,25 @@ class FilterRenderer extends Template implements FilterRendererInterface
      * @param $filter: filter instance
      * @return filter url
      */
-    public function getFilterUrl($filter) {
+    public function getFilterUrl($filter)
+    {
         $query = ['price' => ''];
         return $this->getUrl('*/*/*', ['_current' => true, '_use_rewrite' => true, '_query' => $query]);
+    }
+    
+    /**
+     * Function to get session categories
+     */
+    public function getSessionCategories()
+    {
+        return $this->_multifilterSession->getCategories();
+    }
+    
+    /**
+     * Function to get session attributes
+     */
+    public function getSessionAttributes()
+    {
+        return $this->_multifilterSession->getAtrributes();
     }
 }
