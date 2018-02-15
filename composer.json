@@ -10,7 +10,7 @@
     "repositories": [
     {
         "type": "composer",
-        "url": "https://github.com/cybage-magento-coe/multifilter.git"
+        "url": "https://packagist.org/packages/cybage/module-multifilter"
     }
     ],
      "require": {
